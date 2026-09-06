@@ -8,12 +8,16 @@ Ubuntu 서버에 Docker로 서비스를 띄우고 Cloudflare Tunnel로 외부에
 [여기 그림]
 ```mermaid
 flowchart TD
-    User[사용자] --> CF[Cloudflare]
-    CF -->|Tunnel| CFD[cloudflared]
+    User[사용자] --> CF[Cloudflare<br/>DNS + HTTPS]
+    CF -.Tunnel.-> CFD
 
-    subgraph Server[홈서버 - Ubuntu]
-        CFD --> H[AlphA Holdings<br/>Next.js]
-        CFD --> B[AlphA Bank<br/>Next.js]
+    Dev[로컬 개발] -->|git push| GH[GitHub]
+    GH -.pull.-> Server
+
+    subgraph Server[홈서버 · Ubuntu + Docker]
+        CFD[cloudflared]
+        CFD --> H[AlphA Holdings]
+        CFD --> B[AlphA Bank]
         H --> HDB[(SQLite)]
         B --> BDB[(SQLite)]
     end
@@ -27,8 +31,8 @@ flowchart TD
 ## 운영 중인 서비스
 | 서비스 | 도메인 | 설명 |
 |---|---|---|
-| AlphA Holdings | holdings.alphaintlgroup.com | 포트폴리오 관리 |
-| AlphA Bank | (도메인) | 월별 예산 관리 |
+| AlphA Holdings | holdings.alphaintlgroup.com | 투자 포트폴리오 관리 |
+| AlphA Bank | bank.alphaintlgroup.com | 자산 관리 |
 
 ## 배포
 git push → 서버에서 pull → `docker compose up --build`
