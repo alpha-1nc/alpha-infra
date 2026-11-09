@@ -40,7 +40,7 @@ flowchart TD
 | OS | Ubuntu 22.04 |
 | 컨테이너 | Docker, Docker Compose |
 | 외부 공개 | Cloudflare Tunnel (cloudflared) |
-| 접근 제어 | Cloudflare Zero Trust Access (이메일 OTP) |
+| 접근 제어 | Cloudflare Zero Trust Access (이메일 OTP), 앱 자체 로그인 |
 | 모니터링 · 알림 | Uptime Kuma, n8n, Telegram |
 | 애플리케이션 | Next.js, TypeScript, Prisma, SQLite |
 
@@ -50,10 +50,10 @@ flowchart TD
 | alphaintlgroup.com | 메인 페이지 | localhost:3004 | 공개 |
 | holdings.alphaintlgroup.com | AlphA Holdings (자산관리) | localhost:3000 | 이메일 인증 |
 | bank.alphaintlgroup.com | AlphA Bank (가계·예산) | localhost:3005 | 이메일 인증 |
-| cloud.alphaintlgroup.com | Filebrowser (파일 서버) | localhost:3002 | 이메일 인증 |
-| auto.alphaintlgroup.com | n8n (자동화) | localhost:3003 | 이메일 인증 |
-| radar.alphaintlgroup.com | Uptime Kuma (모니터링) | localhost:3001 | 이메일 인증 |
-| terminal.alphaintlgroup.com | SSH | localhost:22 | SSH 키 인증 |
+| cloud.alphaintlgroup.com | Filebrowser (파일 서버) | localhost:3002 | 앱 자체 로그인 (ID/PW) |
+| auto.alphaintlgroup.com | n8n (자동화) | localhost:3003 | 앱 자체 로그인 (ID/PW) |
+| radar.alphaintlgroup.com | Uptime Kuma (모니터링) | localhost:3001 | 앱 자체 로그인 (ID/PW) |
+| terminal.alphaintlgroup.com | SSH | localhost:22 | SSH 로그인 |
 
 ## 배포
 ```
