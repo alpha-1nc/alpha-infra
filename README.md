@@ -16,7 +16,7 @@ flowchart TD
     Dev[개발 PC] -->|git push| GH[GitHub]
     GH -.git pull.-> Server
 
-    subgraph Server[홈서버 · Ubuntu 22.04 + Docker]
+    subgraph Server[홈서버 · Ubuntu 24.04 + Docker]
         CFD[cloudflared]
         CFD -->|:3004| HUB[메인 페이지]
         CFD -->|:3000| H[AlphA Holdings]
