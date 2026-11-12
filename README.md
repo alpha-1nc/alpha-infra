@@ -30,14 +30,14 @@ flowchart TD
     end
 
     UK -->|장애 알림| TG[Telegram]
-    N8N -->|정기 점검 알림| TG
+    N8N -->|상태 조회 · 정기 리포트| TG
 ```
 
 ## 스택
 | 구분 | 사용 기술 |
 |---|---|
 | 하드웨어 | LG gram 노트북 (유휴 장비 재사용) |
-| OS | Ubuntu 22.04 |
+| OS | Ubuntu 24.04 |
 | 컨테이너 | Docker, Docker Compose |
 | 외부 공개 | Cloudflare Tunnel (cloudflared) |
 | 접근 제어 | Cloudflare Zero Trust Access (이메일 OTP), 앱 자체 로그인 |
@@ -49,7 +49,7 @@ flowchart TD
 |---|---|---|---|
 | alphaintlgroup.com | 메인 페이지 | localhost:3004 | 공개 |
 | holdings.alphaintlgroup.com | AlphA Holdings (자산관리) | localhost:3000 | 이메일 인증 |
-| bank.alphaintlgroup.com | AlphA Bank (가계·예산) | localhost:3005 | 이메일 인증 |
+| bank.alphaintlgroup.com | AlphA Bank (재무관리: 예산·자산) | localhost:3005 | 이메일 인증 |
 | cloud.alphaintlgroup.com | Filebrowser (파일 서버) | localhost:3002 | 앱 자체 로그인 (ID/PW) |
 | auto.alphaintlgroup.com | n8n (자동화) | localhost:3003 | 앱 자체 로그인 (ID/PW) |
 | radar.alphaintlgroup.com | Uptime Kuma (모니터링) | localhost:3001 | 앱 자체 로그인 (ID/PW) |
@@ -65,7 +65,8 @@ DB 구조가 바뀌는 배포는 순서를 지킵니다: **이미지 빌드 확�
 
 ## 모니터링과 알림
 - **Uptime Kuma**: 각 서비스 주소를 주기적으로 확인하고, 응답이 없으면 텔레그램으로 알림을 보냅니다.
-- **n8n**: 주간·월간 정기 점검(관심 종목 등락률·지표 등) 결과를 텔레그램으로 보냅니다.
+- **n8n**: 텔레그램에서 `/서버`, `/도커` 명령을 보내면 서버 부하·메모리와 컨테이너 상태를 바로 받아봅니다. 주간·월간 정기 리포트(관심 종목 등락률·지표)도 보냅니다.
+- **최소 권한**: 처음에는 n8n 컨테이너에 docker.sock을 마운트해 Docker 관리 권한이 열려 있었습니다. 이를 제거하고, 호스트 cron이 1분마다 컨테이너 상태를 파일로 기록하면 n8n은 그 파일만 읽기 전용(`:ro`)으로 마운트해 읽도록 바꿨습니다.
 
 ## 기술 선택 이유
 ### 왜 Cloudflare Tunnel인가
@@ -95,6 +96,11 @@ Holdings와 Bank에는 개인 자산 정보가 있지만 앱 자체에는 로그
 - **증상**: AlphA Bank 컨테이너 안에서 마이그레이션 스크립트를 실행하자 `fcntl64` 심볼 오류로 실패
 - **원인**: 이미지가 `node:20-alpine`(musl libc) 기반인데, 스크립트가 쓰는 `@libsql/client` 네이티브 모듈은 glibc를 기준으로 빌드되어 있음
 - **해결**: 마이그레이션 스크립트는 컨테이너 대신 호스트(또는 debian 기반 일회성 컨테이너)에서 DB 파일 경로를 직접 지정해 실행하도록 배포 절차를 바꿈
+
+### 3. 자동화 도구에 열려 있던 Docker 관리 권한
+- **증상**: n8n의 `/도커` 명령이 `EACCES /var/run/docker.sock` 오류로 실패
+- **원인**: 컨테이너 상태를 조회하려고 docker.sock을 마운트해 두었는데, 이는 사실상 호스트 전체에 대한 관리 권한을 자동화 도구에 준 상태였음
+- **해결**: docker.sock 마운트를 제거하고, 호스트 cron(`docker ps` → 상태 파일)과 읽기 전용 마운트(`/home/alpha/n8n-shared:/shared:ro`)로 필요한 정보만 전달
 
 ## 개선 예정
 - 컨테이너 포트를 `127.0.0.1`에만 바인딩해 같은 공유기의 다른 기기에서도 직접 접근하지 못하게 제한
